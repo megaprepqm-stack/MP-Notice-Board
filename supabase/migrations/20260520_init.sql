@@ -1,0 +1,13 @@
+create extension if not exists "pgcrypto";
+create table if not exists users (id uuid primary key references auth.users(id) on delete cascade, role text not null default 'admin', full_name text, created_at timestamptz not null default now());
+create table if not exists displays (id uuid primary key default gen_random_uuid(), name text not null, slug text unique not null, is_enabled boolean not null default true, resolution text not null default '1920x1080', created_by uuid references users(id), created_at timestamptz not null default now(), updated_at timestamptz not null default now());
+create table if not exists slides (id uuid primary key default gen_random_uuid(), display_id uuid not null references displays(id) on delete cascade, sort_order int not null default 0, type text not null, duration_sec int not null default 10, content jsonb not null default '{}'::jsonb, is_draft boolean not null default true, created_at timestamptz not null default now(), updated_at timestamptz not null default now());
+create table if not exists templates (id uuid primary key default gen_random_uuid(), name text not null, category text not null, payload jsonb not null, created_at timestamptz not null default now());
+create table if not exists media (id uuid primary key default gen_random_uuid(), owner_id uuid references users(id), file_key text not null unique, mime_type text not null, size_bytes bigint not null, created_at timestamptz not null default now());
+create table if not exists publish_history (id uuid primary key default gen_random_uuid(), display_id uuid not null references displays(id) on delete cascade, published_by uuid references users(id), version int not null, snapshot jsonb not null, published_at timestamptz not null default now());
+create table if not exists settings (id uuid primary key default gen_random_uuid(), key text unique not null, value jsonb not null, updated_at timestamptz not null default now());
+create index if not exists idx_slides_display_order on slides(display_id, sort_order);
+alter table displays enable row level security; alter table slides enable row level security; alter table media enable row level security;
+create policy "admin all displays" on displays for all using (auth.jwt() ->> 'role' = 'admin');
+create policy "admin all slides" on slides for all using (auth.jwt() ->> 'role' = 'admin');
+create policy "admin all media" on media for all using (auth.jwt() ->> 'role' = 'admin');
