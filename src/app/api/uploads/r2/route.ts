@@ -1,0 +1,2 @@
+import { PutObjectCommand } from '@aws-sdk/client-s3';import { getSignedUrl } from '@aws-sdk/s3-request-presigner';import { NextRequest,NextResponse } from 'next/server';import { r2 } from '@/lib/r2/client';
+export async function POST(req:NextRequest){const {filename,contentType}=await req.json();const key=`slides/${Date.now()}-${filename}`;const command=new PutObjectCommand({Bucket:process.env.R2_BUCKET,Key:key,ContentType:contentType});const uploadUrl=await getSignedUrl(r2,command,{expiresIn:120});return NextResponse.json({uploadUrl,key});}
