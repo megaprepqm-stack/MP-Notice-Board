@@ -1,0 +1,1 @@
+export default function DashboardPage(){return <main className="p-8"><h1 className="text-3xl font-semibold mb-6">Dashboard</h1><div className="grid md:grid-cols-4 gap-4">{['Displays','Active Screens','Slides','Published'].map(x=><div key={x} className="rounded-xl border border-slate-700 p-4">{x}</div>)}</div></main>}
